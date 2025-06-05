@@ -34,9 +34,12 @@
 {% block javascript %}
 <script>
     function scrollToBottom() {
-        const container = document.getElementBtId('chat_container');
-        container.scrollTop = container.scrollHeight;
+        const container = document.getElementById('chat_container');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
     }
-    scrollToBottom()
+    document.addEventListener('DOMContentLoaded', scrollToBottom);
 </script>
+
 {% endblock %}
