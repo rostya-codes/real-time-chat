@@ -1,5 +1,7 @@
-Django
+Django~=5.2.2
 pillow
 django-cleanup
-django-allauth
+django-allauth~=65.9.0
 django-htmx
+channels~=4.2.2
+asgiref~=3.8.1
