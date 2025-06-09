@@ -10,14 +10,15 @@ from .forms import ChatMessageCreateForm
 @login_required
 def chat_view(request, chatroom_name='public-chat'):
     chat_group = get_object_or_404(ChatGroup, group_name=chatroom_name)
-    chat_messages = chat_group.chat_messages.all()[:30]
+    chat_messages = chat_group.chat_messages.all()[:200]
     form = ChatMessageCreateForm()
 
     other_user = None
+    members = chat_group.members.all()
     if chat_group.is_private:
-        if request.user not in chat_group.members.all():
+        if request.user not in members:
             raise Http404()
-        for member in chat_group.members.all():
+        for member in members:
             if member != request.user:
                 other_user = member
                 break
@@ -48,14 +49,19 @@ def chat_view(request, chatroom_name='public-chat'):
 @login_required
 def get_or_create_chatroom(request, username):
     if request.user.username == username:
+        # Если ты пытаешься открыть чат сам с собой — происходит редирект на главную
         return redirect('home')
 
+    # Находит объект пользователя в базе по переданному имени. Это будет собеседник.
     other_user = User.objects.get(username=username)
+
+    # Находит все приватные чаты, в которых состоит текущий пользователь.
     my_chatrooms = request.user.chat_groups.filter(is_private=True)
 
     if my_chatrooms.exists():
         for chatroom in my_chatrooms:
             if other_user in chatroom.members.all():
+                # Если в комнате уже есть other_user — значит, приватный чат с этим человеком уже создан.
                 chatroom = chatroom
                 break
             else:

@@ -1,1 +1,1 @@
-![Demo screenshot](chat.png)
+![Demo screenshot](images/chat.png)
