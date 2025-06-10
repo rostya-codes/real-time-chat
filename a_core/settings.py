@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from config import EMAIL_ADDRESS, GMAIL_APP_PASSWORD
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-rj#-z^kx3j+1ay397otg6j8m_8#v^$^$jys6&41vy^&6le)ezc'
@@ -132,5 +134,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+AUTH_USER_MODEL = 'auth.User'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = EMAIL_ADDRESS
+EMAIL_HOST_PASSWORD = GMAIL_APP_PASSWORD
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
