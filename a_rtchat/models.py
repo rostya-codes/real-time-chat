@@ -1,7 +1,6 @@
 import os
 
 import shortuuid
-from PIL.Image import Image
 from django.conf import settings
 from django.db import models
 
@@ -43,10 +42,10 @@ class GroupMessage(models.Model):
 
     @property
     def is_image(self):
-        try:
-            image = Image.open(self.file)
-            image.verify()
+        if self.filename.lower().endswith(
+                ('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif', '.webp',
+                 '.svg', '.ico', '.heic', '.avif', '.jfif', '.pjpeg', '.pjp')):
             return True
-        except:
+        else:
             return False
 
