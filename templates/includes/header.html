@@ -12,10 +12,9 @@
         <ul class="navitems flex items-center justify-center h-full">
             {% if request.user.is_authenticated %}
             <!-- x-data для dropdown чата -->
-            <li x-data="{ dropdownChatOpen: false }" class="relative"
-                hx-ext="ws"
-                ws-connect="/ws/online-status/">
+            <li x-data="{ dropdownChatOpen: false }" class="relative">
                 <a @click="dropdownChatOpen = !dropdownChatOpen" @click.away="dropdownChatOpen = false" class="cursor-pointer select-none flex items-center">
+                    <div id="online-in-chats"></div>
                     Chat
                     <img :class="dropdownChatOpen && 'rotate-180 duration-300'" class="w-4 ml-1" src="https://img.icons8.com/small/32/ffffff/expand-arrow.png" alt="Dropdown" />
                 </a>
@@ -23,29 +22,7 @@
                     x-transition:enter="duration-300 ease-out"
                     x-transition:enter-start="opacity-0 -translate-y-5 scale-90"
                     x-transition:enter-end="opacity-100 translate-y-0 scale-100">
-                    <ul class="hoverlist [&>li>a]:justify-end">
-                        <li><a href="{% url 'home' %}">Public Chat</a></li>
-                        {% for chatroom in user.chat_groups.all %}
-                        {% if chatroom.groupchat_name %}
-                        <li>
-                            <a class="leading-5 text-right" href="{% url 'chatroom' chatroom.group_name %}">
-                                {{ chatroom.groupchat_name|slice:":30" }}
-                            </a>
-                        </li>
-                        {% endif %}
-                        {% endfor %}
-                        {% for chatroom in user.chat_groups.all %}
-                            {% if chatroom.is_private %}
-                                {% for member in chatroom.members.all %}
-                                    {% if member != user %}
-                                        <li>
-                                            <a href="{% url 'chatroom' chatroom.group_name %}">{{ member.profile.name }}</a>
-                                        </li>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
+                    <ul id="chats-list"></ul>
                 </div>
             </li>
             <!-- Профиль -->
