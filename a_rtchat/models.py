@@ -1,4 +1,7 @@
+import os
+
 import shortuuid
+from PIL.Image import Image
 from django.conf import settings
 from django.db import models
 
@@ -18,11 +21,32 @@ class ChatGroup(models.Model):
 class GroupMessage(models.Model):
     group = models.ForeignKey(ChatGroup, related_name='chat_messages', on_delete=models.CASCADE)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    body = models.CharField(max_length=300)
+    body = models.CharField(max_length=300, blank=True, null=True)
+    file = models.FileField(upload_to='files/', blank=True, null=True)  # All types of files
     created = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def filename(self):
+        if self.file:
+            return os.path.basename(self.file.name)
+        else:
+            return None
+
     def __str__(self):
-        return f'{self.author.username} : {self.body}'
+        if self.body:
+            return f'{self.author.username} : {self.body}'
+        elif self.file:
+            return f'{self.author.username} : {self.filename}'
 
     class Meta:
         ordering = ['-created']
+
+    @property
+    def is_image(self):
+        try:
+            image = Image.open(self.file)
+            image.verify()
+            return True
+        except:
+            return False
+
