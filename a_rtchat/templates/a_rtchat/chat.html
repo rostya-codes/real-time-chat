@@ -7,6 +7,16 @@
         <h2 class="text-2xl font-bold text-gray-900">
             {{ chat_group.groupchat_name }}
         </h2>
+        <!-- Leave chat кнопка -->
+        {% if chat_group.members.exists %}
+            <button
+                type="button"
+                class="px-1.5 py-0.5 bg-red-500 hover:bg-red-600 text-white rounded text-base font-semibold leading-none transition"
+                onclick="document.getElementById('leave-chat-modal').classList.remove('hidden')"
+            >
+                Leave
+            </button>
+        {% endif %}
         {% if user == chat_group.admin %}
             <a href="{% url 'edit-chatroom' chat_group.group_name %}" class="flex items-center ml-4">
                 <div class="w-10 h-10 bg-gray-200 hover:bg-blue-600 rounded-lg group flex items-center justify-center transition-colors duration-200">
@@ -69,6 +79,8 @@
         </div>
     </div>
 </wrapper>
+
+{% include 'a_rtchat/partials/modal_chat_leave.html' %}
 
 {% endblock %}
 

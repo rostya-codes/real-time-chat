@@ -24,7 +24,7 @@ class ChatroomConsumer(WebsocketConsumer):
 
         self.accept()
 
-    def disconnect(self, close_code):
+    def disconnect(self, code):
         async_to_sync(self.channel_layer.group_discard)(
             self.chatroom_name, self.channel_name
         )
@@ -78,4 +78,47 @@ class ChatroomConsumer(WebsocketConsumer):
             'chat_group': self.chatroom,
         }
         html = render_to_string('a_rtchat/partials/online_count.html', context)
+        self.send(text_data=html)
+
+
+class OnlineStatusConsumer(WebsocketConsumer):
+    def connect(self):
+        self.user = self.scope['user']
+        self.group_name = 'online-status'
+        self.group = get_object_or_404(ChatGroup, group_name=self.group_name)
+
+        if self.user not in self.group.users_online.all():
+            self.group.users_online.add(self.user)
+
+        # Add channel to channels layer group
+        async_to_sync(self.channel_layer.group_add)(
+            self.group_name, self.channel_name
+        )
+
+        self.accept()
+        self.online_status()
+
+    def disconnect(self, code):
+        if self.user in self.group.users_online.all():
+            self.group.users_online.remove(self.user)
+
+        async_to_sync(self.channel_layer.group_discard)(
+            self.group_name, self.channel_name
+        )
+        self.online_status()
+
+    def online_status(self):
+        event = {
+            'type': 'online_status_handler'
+        }
+        async_to_sync(self.channel_layer.group_send)(
+            self.group_name, event
+        )
+
+    def online_status_handler(self, event):
+        online_users = self.group.users_online.exclude(id=self.user.id)
+        context = {
+            'online_users': online_users,
+        }
+        html = render_to_string('a_rtchat/partials/online_status.html', context=context)
         self.send(text_data=html)
