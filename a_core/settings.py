@@ -2,11 +2,19 @@ from pathlib import Path
 
 from config import EMAIL_ADDRESS, GMAIL_APP_PASSWORD
 
+from environ import Env
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-rj#-z^kx3j+1ay397otg6j8m_8#v^$^$jys6&41vy^&6le)ezc'
+env = Env()
+env.read_env(BASE_DIR / '.env')
 
-DEBUG = True
+ENVIRONMENT = env('ENVIRONMENT', default='production')
+ENVIRONMENT = 'production'
+
+SECRET_KEY = env('SECRET_KEY')
+
+DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
@@ -83,12 +91,18 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if ENVIRONMENT == 'development':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(env('DATABASE_URL'))
+    }
 
 
 # Password validation
@@ -124,10 +138,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [ BASE_DIR / 'static' ]
+# Для продакшена:
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media' 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -145,3 +161,7 @@ EMAIL_HOST_PASSWORD = GMAIL_APP_PASSWORD
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+
+SESSION_COOKIE_SECURE = True   # если используешь https
+CSRF_COOKIE_SECURE = True      # если используешь https
+SESSION_ENGINE = "django.contrib.sessions.backends.db"

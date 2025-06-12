@@ -15,15 +15,17 @@ class ChatroomConsumer(WebsocketConsumer):
     def connect(self):
         self.user = self.scope['user']
         self.chatroom_name = self.scope['url_route']['kwargs']['chatroom_name']
-        self.chatroom = get_object_or_404(ChatGroup, group_name=self.chatroom_name)
+        # создаём комнату, если её нет
+        self.chatroom, created = ChatGroup.objects.get_or_create(group_name=self.chatroom_name)
         async_to_sync(self.channel_layer.group_add)(
             self.chatroom_name, self.channel_name
         )
 
-        # add and update online users
-        if self.user not in self.chatroom.users_online.all():
-            self.chatroom.users_online.add(self.user)
-            self.update_online_count()
+        # add and update online users — только если пользователь аутентифицирован!
+        if hasattr(self.user, "is_authenticated") and self.user.is_authenticated:
+            if self.user not in self.chatroom.users_online.all():
+                self.chatroom.users_online.add(self.user)
+                self.update_online_count()
 
         self.accept()
 
@@ -97,8 +99,10 @@ class OnlineStatusConsumer(WebsocketConsumer):
         self.group_name = 'online-status'
         self.group = get_object_or_404(ChatGroup, group_name=self.group_name)
 
-        if self.user not in self.group.users_online.all():
-            self.group.users_online.add(self.user)
+        # Добавлять только аутентифицированного пользователя!
+        if hasattr(self.user, "is_authenticated") and self.user.is_authenticated:
+            if self.user not in self.group.users_online.all():
+                self.group.users_online.add(self.user)
 
         # Add channel to channels layer group
         async_to_sync(self.channel_layer.group_add)(
